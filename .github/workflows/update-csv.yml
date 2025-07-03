@@ -1,0 +1,25 @@
+name: Atualizar CSVs TEDE2
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 1 1,7 *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run update script
+        run: python update_tede_csv.py
+      - name: Upload CSVs como artefatos
+        uses: actions/upload-artifact@v4
+        with:
+          name: csvs-tede2
+          path: ./csvs/*.csv
