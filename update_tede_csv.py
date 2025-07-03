@@ -41,32 +41,34 @@ def ano_semestre(data_str):
 def coletar_registros_oai():
     print(f"INFO: Conectando ao endpoint OAI-PMH: {OAI_ENDPOINT}")
     sickle = Sickle(OAI_ENDPOINT)
-    
     all_records_data = []
     record_count = 0
-    
+
     try:
-        # Inicia a primeira requisição
-        response = sickle.ListRecords(metadataPrefix='oai_dc')
-        current_records = response.records
-        resumption_token = response.resumption_token
-        
-        # Processa o primeiro lote
-        for record in current_records:
+        # ListRecords retorna um iterador
+        records = sickle.ListRecords(metadataPrefix='oai_dc')
+        for record in records:
             md = record.metadata
             all_records_data.append({
                 'titulos': '; '.join([t for t in md.get('title', []) if t is not None]),
                 'autor': '; '.join([a for a in md.get('creator', []) if a is not None]),
-                # O contributor pode ter vários tipos, filtraremos por aqueles que não são CPF ou URL
                 'orientador': '; '.join([c for c in md.get('contributor', []) if c and not str(c).startswith('CPF') and not str(c).startswith('http')]),
                 'datas': [d for d in md.get('date', []) if d is not None],
                 'curso': '; '.join([c for c in md.get('publisher', []) if c is not None]),
                 'palavras_chave': '; '.join([p for p in md.get('subject', []) if p is not None]),
                 'resumo': md.get('description', [''])[0] if md.get('description', []) else '',
-                'link': next((id for id in md.get('identifier', []) if id and str(id).startswith('http')), '') # Pega o primeiro identifier que é uma URL
+                'link': next((id for id in md.get('identifier', []) if id and str(id).startswith('http')), '')
             })
-        record_count += len(current_records)
-        print(f"INFO: Coletado o primeiro lote de {len(current_records)} registros. Total acumulado: {record_count}")
+            record_count += 1
+            if record_count % 100 == 0:
+                print(f"INFO: Coletados {record_count} registros até agora...")
+
+        print(f"INFO: Coleta OAI-PMH concluída. Total de registros coletados: {record_count}")
+        return all_records_data
+
+    except Exception as e:
+        print(f"ERRO FATAL na coleta OAI-PMH: {e}", file=sys.stderr)
+        return []
 
         # Continua buscando lotes com o resumptionToken
         while resumption_token is not None and resumption_token.token:
