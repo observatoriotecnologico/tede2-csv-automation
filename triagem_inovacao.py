@@ -133,7 +133,3 @@ try:
 except gspread.exceptions.SpreadsheetNotFound:
     print(f"ERRO FATAL: Planilha com ID '{SHEET_ID}' NÃO encontrada. Verifique o ID e as permissões de compartilhamento da conta de serviço.", file=sys.stderr)
     sys.exit(1)
-try:
-    pass # código
-except gspread.exceptions.NoValidUrlKeyFound:
-    print('INFO: Script update_tede_csv.py concluído.')
