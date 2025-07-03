@@ -1,2 +1,4 @@
 pandas
 sickle
+gspread
+google-auth-oauthlib
