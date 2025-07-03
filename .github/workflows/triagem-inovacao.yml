@@ -16,6 +16,17 @@ jobs:
           python-version: '3.11'
       - name: Install dependencies
         run: pip install pandas gspread google-auth
+        # -- CORREÇÃO --
+      - name: Download CSVs artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: csvs-tede2
+      
+      - name: Create csvs folder and unzip
+        run: |
+          mkdir -p csvs
+          unzip csvs-tede2 -d csvs
+        # -- CORREÇÃO --
       - name: Triagem inovação e exportação para Sheets
         env:
           GOOGLE_CREDS: ${{ secrets.GOOGLE_CREDS }}
