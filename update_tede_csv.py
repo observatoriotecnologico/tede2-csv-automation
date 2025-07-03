@@ -5,6 +5,9 @@ from sickle import Sickle
 import pandas as pd
 from datetime import datetime
 
+arquivos = glob.glob('csvs/*.csv')
+print("Arquivos encontrados:", arquivos)
+
 PASTA_DRIVE = 'csvs'  # Salvar localmente
 
 sickle = Sickle('https://tede.bc.uepb.edu.br/oai/request')
