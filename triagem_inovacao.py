@@ -51,7 +51,7 @@ gc = gspread.authorize(creds)
 
 # Substitua pelo ID da sua planilha
 SHEET_ID = "1Ft0IDKEgRe5HnyPPtmgdicK_xrmrQYTBctGs0glS5aI"
-NOME_ABA = "Filtro"  # Nome da aba que será criada/substituída
+NOME_ABA = "Coleta"  # Nome da aba que será criada/substituída
 
 sh = gc.open_by_key(SHEET_ID)
 
