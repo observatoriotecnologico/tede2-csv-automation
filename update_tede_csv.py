@@ -35,14 +35,14 @@ for record in records:
     md = record.metadata
     titulos = '; '.join([t for t in md.get('title', []) if t is not None])
     autor = '; '.join([a for a in md.get('creator', []) if a is not None])
-    orientador = '; '.join([c for c in md.get('contributor', []) if not c.startswith('CPF') and not c.startswith('http') and c is not None])
+    orientador = '; '.join([c for c in md.get('contributor', []) if not str(c).startswith('CPF') and not str(c).startswith('http') and c is not None])
     datas = [d for d in md.get('date', []) if d is not None]
     data_base = datas[-1] if datas else ''
     ano, semestre = ano_semestre(data_base)
     curso = '; '.join([c for c in md.get('publisher', []) if c is not None])
     palavras_chave = '; '.join([p for p in md.get('subject', []) if p is not None])
     resumo = md.get('description', [''])[0] if md.get('description', []) and md.get('description', [''])[0] is not None else ''
-    link = next((id for id in md.get('identifier', []) if id is not None and id.startswith('http')), '')
+    link = next((id for id in md.get('identifier', []) if id is not None and str(id).startswith('http')), '')
     dados.append({
         'ano': ano or '',
         'semestre': semestre or '',
