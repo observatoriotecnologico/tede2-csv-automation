@@ -1,12 +1,13 @@
-name: Triagem Inovação TEDE2
+name: Atualizar e Triar CSVs TEDE2
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 4 2 1,7 *'   # Roda às 04h UTC dia 2/jan e 2/jul
+    - cron: '0 4 1 1,7 *'
+    - cron: '0 4 2 1,7 *'
 
 jobs:
-  build:
+  atualizar-csvs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -15,18 +16,34 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run update script
+        run: python update_tede_csv.py
+      - name: Upload CSVs como artefatos
+        uses: actions/upload-artifact@v4
+        with:
+          name: csvs-tede2
+          path: ./csvs/*.csv
+
+  triagem-inovacao:
+    runs-on: ubuntu-latest
+    needs: atualizar-csvs
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
         run: pip install pandas gspread google-auth
-        # -- CORREÇÃO --
       - name: Download CSVs artifact
         uses: actions/download-artifact@v4
         with:
           name: csvs-tede2
-      
-      - name: Create csvs folder and unzip
-        run: |
-          mkdir -p csvs
-          unzip csvs-tede2 -d csvs
-        # -- CORREÇÃO --
+      - name: Criar pasta csvs
+        run: mkdir -p csvs
+      - name: Copiar arquivos CSVs para pasta csvs
+        run: mv *.csv csvs/
       - name: Triagem inovação e exportação para Sheets
         env:
           GOOGLE_CREDS: ${{ secrets.GOOGLE_CREDS }}
