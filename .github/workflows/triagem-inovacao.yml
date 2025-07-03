@@ -1,2 +1,22 @@
-- name: Install dependencies
-  run: pip install pandas gspread google-auth
+name: Triagem Inovação TEDE2
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 2 1,7 *'   # Roda às 04h UTC dia 2/jan e 2/jul
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install pandas gspread google-auth
+      - name: Triagem inovação e exportação para Sheets
+        env:
+          GOOGLE_CREDS: ${{ secrets.GOOGLE_CREDS }}
+        run: python triagem_inovacao.py
