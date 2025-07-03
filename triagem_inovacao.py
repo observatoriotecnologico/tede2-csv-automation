@@ -50,7 +50,7 @@ creds = Credentials.from_service_account_info(creds_dict, scopes=[
 gc = gspread.authorize(creds)
 
 # Substitua pelo ID da sua planilha
-SHEET_ID = "COLE_AQUI_O_ID_DA_SUA_PLANILHA"
+SHEET_ID = "1Ft0IDKEgRe5HnyPPtmgdicK_xrmrQYTBctGs0glS5aI"
 NOME_ABA = "Filtro"  # Nome da aba que será criada/substituída
 
 sh = gc.open_by_key(SHEET_ID)
