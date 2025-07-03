@@ -58,4 +58,7 @@ def coletar_registros_oai():
                 'orientador': '; '.join([c for c in md.get('contributor', []) if c and not str(c).startswith('CPF') and not str(c).startswith('http')]),
                 'datas': [d for d in md.get('date', []) if d is not None],
                 'curso': '; '.join([c for c in md.get('publisher', []) if c is not None]),
-                'palavras_chave': '; '.
+                'palavras_chave': '; '.join([p for p in md.get('subject', []) if p is not None]),
+                'resumo': md.get('description', [''])[0] if md.get('description', []) else '',
+                'link': next((id for id in md.get('identifier', []) if id and str(id).startswith('http')), '')
+            })
