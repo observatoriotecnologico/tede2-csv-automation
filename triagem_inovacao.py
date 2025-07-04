@@ -84,7 +84,9 @@ if df_final:
     df_consolidado.replace(['nan', 'inf', '-inf', 'Infinity', '-Infinity', 'NaN'], '', inplace=True)
 
 else:
-    df_consolidado = pd.DataFrame(columns=['ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 'curso', 'palavras_chave', 'resumo', 'link', 'arquivo_origem'])
+    df_consolidado = pd.DataFrame(columns=['ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 
+                                           'curso', 'palavras_chave', 'resumo', 'link', 'arquivo_origem'
+                                          ])
     print("ALERTA: Nenhum registro de inovação encontrado. A planilha será atualizada apenas com os cabeçalhos.", file=sys.stderr)
 
 # ------- INÍCIO DA PARTE DE EXPORTAÇÃO PARA GOOGLE SHEETS ------- 
