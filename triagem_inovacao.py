@@ -5,6 +5,7 @@ import glob
 import os
 import json
 import gspread
+import numpy as np
 from google.oauth2.service_account import Credentials
 import sys # Para saída de erro controlada
 
@@ -75,16 +76,22 @@ for arquivo in arquivos:
 
 import numpy as np  # certifique-se de colocar isso no topo do arquivo, junto com os outros imports
 
-# --- Consolida os resultados e limpa valores não JSON-compliant ---
+# --- Consolida os resultados e limpa valores não compatíveis com JSON ---
 if df_final:
     df_consolidado = pd.concat(df_final, ignore_index=True)
     print(f"INFO: Todos os CSVs processados e consolidados. Total de registros lidos: {total_registros_lidos}. Total de registros filtrados para inovação: {len(df_consolidado)}")
 else:
     df_consolidado = pd.DataFrame(columns=[
-        'ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 'curso',
+        'ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 'curso', 
         'palavras_chave', 'resumo', 'link', 'arquivo_origem'
     ])
     print("ALERTA: Nenhum registro de inovação encontrado após a filtragem em todos os CSVs. A planilha será atualizada apenas com os cabeçalhos.", file=sys.stderr)
+
+# LIMPA valores que causam erro no JSON
+df_consolidado.replace([np.nan, np.inf, -np.inf], '', inplace=True)
+
+# CONVERTE tudo para string para garantir compatibilidade total com o Google Sheets
+df_consolidado = df_consolidado.astype(str)
 
 # Remove NaN, +inf e -inf para não quebrar o JSON do gspread
 df_consolidado.replace([np.nan, np.inf, -np.inf], '', inplace=True)
@@ -136,13 +143,15 @@ try:
     rows_count = max(len(data_to_send), 1)
     cols_count = len(headers) if headers else 1
 
+    print(f"DEBUG: Primeira linha de dados: {data_to_send[1]}")
+    print(f"DEBUG: Tipos dos campos: {[type(x) for x in data_to_send[1]]}")
+    
     wks = sh.add_worksheet(title=NOME_ABA, rows=rows_count, cols=cols_count)
     print(f"INFO: Nova aba '{NOME_ABA}' criada com {rows_count} linhas e {cols_count} colunas.")
 
+try:
     wks.update(data_to_send)
-    print(f'SUCESSO: Planilha "{NOME_ABA}" atualizada com {len(df_consolidado)} registros filtrados de inovação!')
-    print("INFO: Script triagem_inovacao.py finalizado.")
-
+    print(f'SUCESSO: Planilha "{NOME_ABA}" atualizada com {len(df_consolidado)} registros!')
 except Exception as e:
-    print(f"ERRO INESPERADO: {e}", file=sys.stderr)
+    print(f"ERRO NO UPDATE: {type(e).__name__}: {e}", file=sys.stderr)
     sys.exit(1)
