@@ -87,7 +87,7 @@ else:
     df_consolidado = pd.DataFrame(columns=['ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 'curso', 'palavras_chave', 'resumo', 'link', 'arquivo_origem'])
     print("ALERTA: Nenhum registro de inovação encontrado. A planilha será atualizada apenas com os cabeçalhos.", file=sys.stderr)
 
-# ------- INÍCIO DA PARTE DE EXPORTAÇÃO PARA GOOGLE SHEETS -------
+# ------- INÍCIO DA PARTE DE EXPORTAÇÃO PARA GOOGLE SHEETS ------- 
 print("\nINFO: Iniciando conexão com Google Sheets.")
 try:
     creds_dict = json.loads(os.environ['GOOGLE_CREDS'])
