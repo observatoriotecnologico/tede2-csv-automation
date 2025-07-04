@@ -151,6 +151,12 @@ try:
     wks = sh.add_worksheet(title=NOME_ABA, rows=rows_count, cols=cols_count)
     print(f"INFO: Nova aba '{NOME_ABA}' criada com {rows_count} linhas e {cols_count} colunas.")
 
+    # DEBUG: verificação de valores fora do padrão
+for i, row in enumerate(data_to_send[1:], start=2):  # ignora cabeçalho
+    for j, val in enumerate(row):
+        if val in ['NaN', 'nan', 'inf', '-inf', 'Infinity', '-Infinity']:
+            print(f"ERRO DE VALOR: Linha {i}, Coluna {j} → {val}")
+            row[j] = ''  # força limpeza imediata
 try:
     wks.update(data_to_send)
     print(f'SUCESSO: Planilha "{NOME_ABA}" atualizada com {len(df_consolidado)} registros!')
