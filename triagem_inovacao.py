@@ -86,50 +86,58 @@ else:
 
 
 # ------- INÍCIO DA PARTE DE EXPORTAÇÃO PARA GOOGLE SHEETS -------
+# ------- INÍCIO DA PARTE DE EXPORTAÇÃO PARA GOOGLE SHEETS -------
 print("INFO: Iniciando conexão com Google Sheets via gspread.")
 try:
-    # Lê as credenciais do Secret do GitHub
+    # 1) Inclui o scope de Drive para garantir que a conta de serviço enxergue o arquivo
     creds_dict = json.loads(os.environ['GOOGLE_CREDS'])
-    creds = Credentials.from_service_account_info(creds_dict, scopes=[
-        "https://www.googleapis.com/auth/spreadsheets"
-    ])
+    creds = Credentials.from_service_account_info(
+        creds_dict,
+        scopes=[
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+    )
     gc = gspread.authorize(creds)
-    print("INFO: Autenticação com Google Sheets BEM-SUCEDIDA.")
+    print("INFO: Autenticação com Google Sheets e Drive BEM-SUCEDIDA.")
 
-    SHEET_ID = "1Ft0IDKEgRe5HnyPPTmgdicK_xrmrQYTBctGs0glS5aI" # Seu ID da planilha 'tede-uepb'
-    NOME_ABA = "Coleta"  # Nome da aba
+    # 2) DEBUG: lista todas as planilhas acessíveis para confirmar visibilidade
+    print("INFO: Arquivos de planilha acessíveis à conta de serviço:")
+    for f in gc.list_spreadsheet_files():
+        print(f"  – {f['name']} (ID: {f['id']})")
 
-    sh = gc.open_by_key(SHEET_ID)
-    print(f"INFO: Planilha '{sh.title}' aberta com sucesso (ID: {SHEET_ID}).")
+    SHEET_ID = "1Ft0IDKEgRe5HnyPPTmgdicK_xrmrQYTBctGs0glS5aI"
+    NOME_ABA = "Coleta"
 
-    # Remove a aba antiga se existir
+    # 3) Abre a planilha pelo ID (lança SpreadsheetNotFound se não achar)
+    try:
+        sh = gc.open_by_key(SHEET_ID)
+        print(f"INFO: Planilha '{sh.title}' aberta com sucesso (ID: {SHEET_ID}).")
+    except gspread.SpreadsheetNotFound:
+        print(f"ERRO FATAL: Planilha com ID '{SHEET_ID}' não encontrada ou sem permissão.", file=sys.stderr)
+        sys.exit(1)
+
+    # 4) (restante do seu fluxo: remover aba, criar nova, update)
     try:
         wks = sh.worksheet(NOME_ABA)
         print(f"INFO: Aba '{NOME_ABA}' encontrada. Removendo...")
         sh.del_worksheet(wks)
         print(f"INFO: Aba '{NOME_ABA}' removida com sucesso.")
     except gspread.exceptions.WorksheetNotFound:
-        print(f"INFO: Aba '{NOME_ABA}' NÃO encontrada. Prosseguindo para criar a nova aba...")
-        pass # Não faz nada, pois vai criar a aba na próxima etapa
+        print(f"INFO: Aba '{NOME_ABA}' NÃO encontrada. Criando nova aba...")
 
-    # Prepara os dados para envio (cabeçalhos + linhas de dados)
     headers = df_consolidado.columns.tolist()
     data_to_send = [headers] + df_consolidado.values.tolist()
+    rows_count = max(len(data_to_send), 1)
+    cols_count = len(headers) if headers else 1
 
-    # Garante que a aba tem tamanho suficiente (mínimo de 1 linha para cabeçalho)
-    rows_count = max(len(data_to_send), 1) 
-    cols_count = len(headers) if headers else 1 # Garante pelo menos 1 coluna
-
-    # Cria a nova aba com os dados
     wks = sh.add_worksheet(title=NOME_ABA, rows=rows_count, cols=cols_count)
     print(f"INFO: Nova aba '{NOME_ABA}' criada com {rows_count} linhas e {cols_count} colunas.")
 
-    # Envia os dados para a planilha
     wks.update(data_to_send)
-
     print(f'SUCESSO: Planilha "{NOME_ABA}" atualizada com {len(df_consolidado)} registros filtrados de inovação!')
     print("INFO: Script triagem_inovacao.py finalizado.")
 
-except gspread.exceptions.SpreadsheetNotFound:
-    print(f"ERRO FATAL: Planilha com ID '{SHEET_ID}' NÃO encontrada. Verifique o ID e as permissões de compartilhamento da conta de serviço.", file=sys.stderr)
+except Exception as e:
+    print(f"ERRO INESPERADO: {e}", file=sys.stderr)
     sys.exit(1)
