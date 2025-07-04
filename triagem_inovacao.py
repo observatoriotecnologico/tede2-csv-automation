@@ -73,16 +73,21 @@ for arquivo in arquivos:
     except Exception as e:
         print(f"ERRO: Falha ao processar o arquivo '{os.path.basename(arquivo)}': {e}", file=sys.stderr)
 
-# Consolida os resultados
+import numpy as np  # certifique-se de colocar isso no topo do arquivo, junto com os outros imports
+
+# --- Consolida os resultados e limpa valores não JSON-compliant ---
 if df_final:
     df_consolidado = pd.concat(df_final, ignore_index=True)
     print(f"INFO: Todos os CSVs processados e consolidados. Total de registros lidos: {total_registros_lidos}. Total de registros filtrados para inovação: {len(df_consolidado)}")
 else:
     df_consolidado = pd.DataFrame(columns=[
-        'ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 'curso', 
+        'ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 'curso',
         'palavras_chave', 'resumo', 'link', 'arquivo_origem'
     ])
     print("ALERTA: Nenhum registro de inovação encontrado após a filtragem em todos os CSVs. A planilha será atualizada apenas com os cabeçalhos.", file=sys.stderr)
+
+# Remove NaN, +inf e -inf para não quebrar o JSON do gspread
+df_consolidado.replace([np.nan, np.inf, -np.inf], '', inplace=True)
 
 
 # ------- INÍCIO DA PARTE DE EXPORTAÇÃO PARA GOOGLE SHEETS -------
