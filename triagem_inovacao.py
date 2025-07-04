@@ -106,7 +106,7 @@ try:
     for f in gc.list_spreadsheet_files():
         print(f"  – {f['name']} (ID: {f['id']})")
 
-    SHEET_ID = "1Ft0IDKEgRe5HnyPPTmgdicK_xrmrQYTBctGs0glS5aI"
+    SHEET_ID = "1Ft0IDKEgRe5HnyPPtmgdicK_xrmrQYTBctGs0glS5aI"
     NOME_ABA = "Coleta"
 
     # 3) Abre a planilha pelo ID (lança SpreadsheetNotFound se não achar)
