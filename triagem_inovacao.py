@@ -46,6 +46,8 @@ for arquivo in arquivos:
     try:
         # Usar 'utf-8-sig' para ler CSVs gerados pelo update_tede_csv.py
         df = pd.read_csv(arquivo, dtype=str, encoding='utf-8-sig') 
+        df.replace([np.nan, np.inf, -np.inf], '', inplace=True)
+        df = df.astype(str)
         total_registros_lidos += len(df)
         print(f"INFO: Lendo arquivo: {os.path.basename(arquivo)} com {len(df)} registros.")
 
