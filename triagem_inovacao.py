@@ -85,4 +85,55 @@ if df_final:
 
 else:
     df_consolidado = pd.DataFrame(columns=[
-        'ano', 'semestre', 'data_base',
+        'ano', 'semestre', 'data_base', 'titulo', 'autor', 'orientador', 'curso',
+        'palavras_chave', 'resumo', 'link', 'arquivo_origem'
+    ])
+    print("ALERTA: Nenhum registro de inovação encontrado. A planilha será atualizada apenas com os cabeçalhos.", file=sys.stderr)
+
+# ------- INÍCIO DA PARTE DE EXPORTAÇÃO PARA GOOGLE SHEETS -------
+print("\nINFO: Iniciando conexão com Google Sheets.")
+try:
+    creds_dict = json.loads(os.environ['GOOGLE_CREDS'])
+    creds = Credentials.from_service_account_info(
+        creds_dict,
+        scopes=["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+    )
+    gc = gspread.authorize(creds)
+    print("INFO: Autenticação com Google API BEM-SUCEDIDA.")
+
+    SHEET_ID = "1Ft0IDKEgRe5HnyPPtmgdicK_xrmrQYTBctGs0glS5aI"
+    NOME_ABA = "Coleta"
+
+    sh = gc.open_by_key(SHEET_ID)
+    print(f"INFO: Planilha '{sh.title}' aberta com sucesso.")
+
+    try:
+        wks_antiga = sh.worksheet(NOME_ABA)
+        sh.del_worksheet(wks_antiga)
+        print(f"INFO: Aba antiga '{NOME_ABA}' removida.")
+    except gspread.exceptions.WorksheetNotFound:
+        print(f"INFO: Aba '{NOME_ABA}' não existia. Uma nova será criada.")
+
+    headers = df_consolidado.columns.tolist()
+    data_to_send = [headers] + df_consolidado.values.tolist()
+    
+    rows_count = len(data_to_send)
+    # Garante que não tentaremos criar uma planilha com 0 colunas
+    cols_count = len(headers) if headers else 1
+    wks = sh.add_worksheet(title=NOME_ABA, rows=rows_count, cols=cols_count)
+    print(f"INFO: Nova aba '{NOME_ABA}' criada.")
+
+    print("INFO: Enviando dados para a planilha... (Isso pode levar um momento)")
+    # Atualiza a planilha
+    wks.update(data_to_send, value_input_option='USER_ENTERED')
+    print(f'\nSUCESSO: Planilha "{NOME_ABA}" atualizada com {len(df_consolidado)} registros!')
+
+except gspread.exceptions.SpreadsheetNotFound:
+    print(f"ERRO FATAL: Planilha com ID '{SHEET_ID}' não encontrada ou sem permissão.", file=sys.stderr)
+    sys.exit(1)
+except Exception as e:
+    print(f"\nERRO FATAL DURANTE A ATUALIZAÇÃO DA PLANILHA: {type(e).__name__}: {e}", file=sys.stderr)
+    # Imprime a primeira linha com problema para facilitar o debug, se possível
+    if 'data_to_send' in locals() and len(data_to_send) > 1:
+        print(f"DEBUG: Primeira linha de dados no momento do erro: {data_to_send[1]}", file=sys.stderr)
+    sys.exit(1)
